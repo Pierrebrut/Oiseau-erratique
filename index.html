@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>45t - La Voix du Petit</title>
+    <title>Oiseau Erratique - Le Chaos Parle</title>
     <style>
         body {
             margin: 0;
             background-color: #0d0d0d;
-            color: #e0e0e0;
+            color: #f0f0f0;
             font-family: "Courier New", monospace;
-            text-align: center;
             height: 100vh;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            transition: background-color 2s;
+            position: relative;
+            transition: background-color 2s ease-in-out;
         }
         .symbol {
             font-size: 6em;
             animation: float 5s infinite alternate ease-in-out;
             opacity: 0.9;
             transition: transform 1s, opacity 1.5s;
+            position: relative;
+            z-index: 2;
         }
         .message, .petit {
-            font-size: 1.2em;
+            font-size: 1.4em;
             margin-top: 20px;
             opacity: 0;
             transition: opacity 2s ease-in-out;
@@ -37,132 +39,136 @@
             position: absolute;
             bottom: 10%;
             left: 5%;
+            z-index: 2;
+        }
+        .fragment {
+            position: absolute;
+            color: rgba(255, 0, 0, 0.4);
+            font-size: 1.5em;
+            pointer-events: none;
+            animation: drift 15s infinite alternate;
         }
         @keyframes float {
             from { transform: translateY(0); }
             to { transform: translateY(20px); }
         }
-        .fragment {
-            position: absolute;
-            color: rgba(255, 0, 0, 0.5);
-            font-size: 1.5em;
-            pointer-events: none;
-            animation: drift 15s infinite alternate;
-        }
         @keyframes drift {
             from { transform: translateY(0); }
             to { transform: translateY(-30px); }
         }
+        .hidden-symbol {
+            position: absolute;
+            color: rgba(255, 0, 0, 0.8);
+            font-size: 3em;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <audio id="background-audio" loop>
+        <source src="ton-fichier-son.ogg" type="audio/ogg">
+    </audio>
     <div id="symbol" class="symbol">𓅃</div>
     <div id="message" class="message"></div>
     <div id="petit" class="petit"></div>
+    <div id="hidden-symbol" class="hidden-symbol">⧉</div>
 
     <script>
         const symbols = ["𓅃", "☉", "⧉", "✶", "⟁", "⦿", "𓏢"];
-        const endings = Array.from({ length: 250 }, (_, i) => `Fin #${i + 1} : ${generateMysticEnding(i + 1)}`);
         const petitMessages = [
-            "Tu ne devrais pas être ici...",
-            "C'est toi, ou c'est moi ?",
-            "Pourquoi tu insistes autant ?",
-            "Je vois ce que tu fais.",
-            "Reviens. Ou pas.",
-            "Les autres t'entendent-ils aussi ?",
-            "Je te suis depuis le début.",
-            "C’est amusant de te voir essayer…"
+            "Je sais que tu es là...",
+            "Arrête, ça me fait peur...",
+            "Tu ne trouves rien ici.",
+            "Pourquoi tu tentes encore ?",
+            "Je te vois...",
+            "Quelque chose ne va pas."
         ];
 
-        let level = parseInt(localStorage.getItem("chaosLevel")) || 0;
-        let secretsFound = parseInt(localStorage.getItem("secretsFound")) || 0;
-        const revealedEndings = JSON.parse(localStorage.getItem("revealedEndings")) || [];
+        let clicks = 0;
+        let secretsFound = 0;
 
         const symbolElement = document.getElementById("symbol");
         const messageElement = document.getElementById("message");
         const petitElement = document.getElementById("petit");
+        const hiddenSymbol = document.getElementById("hidden-symbol");
+        const audioElement = document.getElementById("background-audio");
 
-        function generateMysticEnding(index) {
-            const fragments = [
-                "La nuit t’avale.", "Les étoiles s’éteignent une à une.", "Un cri résonne dans l’éternité.",
-                "Ton souffle se perd dans l'abîme.", "Les murs pleurent du sang.", "Le silence devient vivant.",
-                "L’horizon disparaît.", "La terre s’efface sous tes pieds.", "Le temps s’effondre autour de toi."
-            ];
-            return `${fragments[index % fragments.length]} (${index})`;
-        }
-
-        function revealEnding() {
-            const remainingEndings = endings.filter(e => !revealedEndings.includes(e));
-            if (remainingEndings.length === 0) {
-                messageElement.textContent = "Toutes les fins ont été révélées.";
-                return;
-            }
-
-            const ending = remainingEndings[Math.floor(Math.random() * remainingEndings.length)];
-            messageElement.textContent = ending;
-            messageElement.style.opacity = 1;
-
-            setTimeout(() => messageElement.style.opacity = 0, 5000);
-
-            revealedEndings.push(ending);
-            localStorage.setItem("revealedEndings", JSON.stringify(revealedEndings));
-
-            symbolElement.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-            console.log(`Fin révélée : ${ending}`);
-
-            setTimeout(triggerPetit, Math.random() * 5000 + 2000);
-            increaseLevel();
-            hiddenTrigger();
-        }
+        audioElement.volume = 0.05;
+        audioElement.play();
 
         function distortSymbol() {
-            symbolElement.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            symbolElement.textContent = randomSymbol;
             symbolElement.style.transform = `rotate(${Math.random() * 360}deg) scale(${1 + Math.random() * 0.5})`;
         }
 
+        function revealMessage() {
+            clicks++;
+            if (clicks >= 100) {
+                messageElement.textContent = "La fin t'attend... mais veux-tu vraiment la voir ?";
+                document.body.style.backgroundColor = "#330000";
+                return;
+            }
+
+            const messages = [
+                "Le vide murmure ton nom...",
+                "Chaque clic t'éloigne un peu plus.",
+                "Pourquoi continues-tu ?",
+                "Le chaos grandit autour de toi.",
+                "Ton souffle résonne ici.",
+                "Quelque chose te suit..."
+            ];
+
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            messageElement.textContent = randomMessage;
+            messageElement.style.opacity = 1;
+            setTimeout(() => messageElement.style.opacity = 0, 5000);
+        }
+
         function triggerPetit() {
-            const petitMessage = petitMessages[Math.floor(Math.random() * petitMessages.length)];
-            petitElement.textContent = petitMessage;
+            const randomMessage = petitMessages[Math.floor(Math.random() * petitMessages.length)];
+            petitElement.textContent = randomMessage;
             petitElement.style.opacity = 1;
             setTimeout(() => petitElement.style.opacity = 0, 7000);
         }
 
-        function increaseLevel() {
-            level++;
-            localStorage.setItem("chaosLevel", level);
-            if (level % 10 === 0) {
-                triggerPetitSpecial(`Niveau ${level} : Le monde change.`);
-                document.body.style.backgroundColor = `rgb(${Math.random() * 50}, 0, 0)`;
+        function revealHiddenSymbol() {
+            secretsFound++;
+            if (secretsFound === 1) {
+                hiddenSymbol.style.opacity = 1;
+                setTimeout(() => hiddenSymbol.style.opacity = 0, 7000);
+                console.log("Un secret a été trouvé...");
             }
         }
 
-        function triggerPetitSpecial(comment) {
-            petitElement.textContent = comment;
-            petitElement.style.opacity = 1;
-            setTimeout(() => petitElement.style.opacity = 0, 7000);
+        function handleMouseMove(event) {
+            if (event.clientX < 50 && event.clientY < 50) {
+                revealHiddenSymbol();
+            }
         }
 
-        function hiddenTrigger() {
-            if (level === 13) {
-                secretsFound++;
-                localStorage.setItem("secretsFound", secretsFound);
-                messageElement.textContent = "Tu as trouvé une fissure dans l’ombre.";
-                document.body.style.backgroundColor = "#330000";
-                console.log(`Secrets trouvés : ${secretsFound}`);
+        function checkTime() {
+            const hour = new Date().getHours();
+            if (hour > 20 || hour < 6) {
+                document.body.style.backgroundColor = "#111";
+                revealMessage("La nuit t'avale...");
             }
         }
 
         symbolElement.addEventListener("click", () => {
             distortSymbol();
-            revealEnding();
+            revealMessage();
+            triggerPetit();
+
+            if (clicks % 13 === 0) {
+                revealHiddenSymbol();
+            }
         });
 
-        setInterval(() => {
-            if (Math.random() > 0.95) triggerPetitSpecial("Le silence me rend fou. Et toi ?");
-        }, 15000);
-
-        setTimeout(() => triggerPetitSpecial("Le silence… c'est toi, non ?"), 30000);
+        document.addEventListener("mousemove", handleMouseMove);
+        checkTime();
     </script>
 </body>
 </html>
-        

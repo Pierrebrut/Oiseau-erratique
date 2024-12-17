@@ -3,31 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>45t - Mutation de l'Oracle</title>
+    <title>45t - L’Ombre et Son Reflet</title>
     <style>
         body {
             margin: 0;
-            height: 100vh;
-            background-color: #0b0b0b;
-            color: #cfcfcf;
-            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: "Courier New", monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            text-align: center;
+            height: 100vh;
+            transition: background-color 2s;
         }
         .symbol {
             font-size: 6em;
-            cursor: pointer;
-            opacity: 0.8;
-            transition: transform 1s ease, opacity 1s ease;
+            opacity: 0.9;
+            position: absolute;
+            z-index: 2;
+            animation: float 6s infinite alternate ease-in-out;
         }
         .message {
+            font-size: 1.4em;
             margin-top: 20px;
-            font-size: 1.3em;
+            position: absolute;
+            bottom: 10%;
             opacity: 0;
-            transition: opacity 2s ease-in-out;
+            transition: opacity 2s;
+        }
+        .fragment {
+            position: absolute;
+            color: rgba(255, 0, 0, 0.5);
+            pointer-events: none;
+            font-size: 2em;
+            animation: drift 10s infinite alternate;
+        }
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(20px); }
+        }
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
         }
     </style>
 </head>
@@ -36,63 +55,81 @@
     <div id="message" class="message"></div>
 
     <script>
-        // Initialisation des variables
-        const symbolElement = document.getElementById("symbol");
-        const messageElement = document.getElementById("message");
-
-        const states = [
-            "𓅃", "𓏢", "✶", "🜃", "𓅆"
+        const symbols = ["𓅃", "✶", "☉", "⧉", "𓏢", "⟁", "⦿"];
+        const messages = [
+            "L'ombre t'appelle.",
+            "Tu es observé.",
+            "Pourquoi es-tu revenu ?",
+            "Chaque souffle te suit.",
+            "Tout se détériore.",
+            "Tu n’es pas seul.",
+            "Regarde derrière toi..."
         ];
 
-        const whispers = [
-            "Le temps t'échappe.",
-            "L'ombre respire en toi.",
-            "Chaque souffle ajoute une empreinte.",
-            "Les murs se fissurent.",
-            "Qui es-tu vraiment ?",
-            "La mémoire s'étend ici."
-        ];
-
-        let state = JSON.parse(localStorage.getItem("oracleState")) || {
-            visits: 0,
-            clicks: 0,
-            mutations: []
+        const visitorInfo = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            screenWidth: window.innerWidth,
+            screenHeight: window.innerHeight,
+            hour: new Date().getHours(),
+            visits: localStorage.getItem("visits") || 0,
         };
 
-        state.visits += 1;
+        const symbol = document.getElementById("symbol");
+        const message = document.getElementById("message");
+        let chaosMemory = JSON.parse(localStorage.getItem("chaosMemory")) || [];
 
-        function leaveTrace(message) {
-            state.mutations.push({ trace: message, time: new Date().toLocaleTimeString() });
-            localStorage.setItem("oracleState", JSON.stringify(state));
+        visitorInfo.visits++;
+        localStorage.setItem("visits", visitorInfo.visits);
+
+        // Fonction pour récupérer un message personnalisé
+        function getPersonalizedMessage() {
+            if (visitorInfo.hour < 6 || visitorInfo.hour > 20) return "La nuit t'observe.";
+            if (visitorInfo.language.includes("fr")) return "Les murmures sont en toi.";
+            return "Les ombres ne mentent pas.";
         }
 
-        function updateSymbol() {
-            state.clicks++;
-            const nextState = states[state.clicks % states.length];
-            symbolElement.textContent = nextState;
-            symbolElement.style.transform = `rotate(${state.clicks * 20}deg) scale(${1 + state.clicks * 0.1})`;
-            revealMessage();
-            leaveTrace(`Changement vers ${nextState}`);
+        function triggerChaos() {
+            const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const personalizedMessage = getPersonalizedMessage();
+
+            symbol.textContent = randomSymbol;
+            symbol.style.transform = `rotate(${Math.random() * 360}deg) scale(${1 + Math.random() * 0.5})`;
+            document.body.style.backgroundColor = `rgb(${Math.random() * 50}, ${Math.random() * 50}, ${Math.random() * 50})`;
+
+            message.textContent = (visitorInfo.visits > 5) ? personalizedMessage : randomMessage;
+            message.style.opacity = 1;
+
+            setTimeout(() => message.style.opacity = 0, 4000);
+
+            chaosMemory.push({ symbol: randomSymbol, message: randomMessage, time: new Date().toLocaleTimeString() });
+            localStorage.setItem("chaosMemory", JSON.stringify(chaosMemory));
+
+            addFragments();
+            console.log("Souvenirs du chaos :", chaosMemory);
         }
 
-        function revealMessage() {
-            const message = whispers[Math.floor(Math.random() * whispers.length)];
-            messageElement.textContent = message;
-            messageElement.style.opacity = 1;
-            setTimeout(() => messageElement.style.opacity = 0, 4000);
+        function addFragments() {
+            const fragment = document.createElement("div");
+            fragment.className = "fragment";
+            fragment.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            fragment.style.left = `${Math.random() * window.innerWidth}px`;
+            fragment.style.top = `${Math.random() * window.innerHeight}px`;
+            document.body.appendChild(fragment);
         }
 
-        symbolElement.addEventListener("click", updateSymbol);
+        // Déclenche des parasites visuels et sonores
+        setInterval(triggerChaos, 5000);
 
-        // Message spécial pour la 7ème visite
-        if (state.visits === 7) {
-            messageElement.textContent = "Sept souffles. Le portail s'ouvre.";
-            messageElement.style.opacity = 1;
-            leaveTrace("Septième visite : Le portail murmure.");
-        }
+        // Interaction principale
+        symbol.addEventListener("click", triggerChaos);
 
-        console.log("Mutations enregistrées : ", state.mutations);
-        localStorage.setItem("oracleState", JSON.stringify(state));
+        // Message d’inactivité
+        setTimeout(() => {
+            message.textContent = "Pourquoi ce silence ?";
+            message.style.opacity = 1;
+        }, 30000);
     </script>
 </body>
 </html>

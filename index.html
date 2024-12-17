@@ -1,90 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>45t - La Pierre Brute</title>
+    <title>45t - Le Portail des Échos</title>
     <style>
         body {
             background-color: #0b0b0b;
-            color: #d0d0d0;
+            color: #c0c0c0;
             font-family: 'Courier New', monospace;
-            text-align: center;
-            height: 100vh;
             margin: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            transition: background-color 2s ease-in-out;
         }
         .symbol {
-            font-size: 5em;
-            margin: 20px 0;
-            opacity: 0.5;
+            font-size: 6em;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: transform 1s ease, opacity 2s ease;
         }
         .message {
-            font-size: 1.3em;
+            font-size: 1.2em;
             opacity: 0;
             transition: opacity 2s ease-in-out;
+        }
+        .hidden-zone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            background-color: transparent;
         }
     </style>
 </head>
 <body>
-    <div id="symbol" class="symbol"></div>
+    <div id="symbol" class="symbol">𓅃</div>
     <div id="message" class="message"></div>
+    <div id="hidden" class="hidden-zone"></div>
 
     <script>
-        const symbols = ["𓅃", "🜃", "𓏢", "𓅆", "✶"];
-        const messages = [
-            "La pierre brute ne connaît pas ton nom.",
-            "Tu cherches, mais qui t'observe ?",
-            "Le silence te parle. Écoute.",
-            "45 secondes suffisent pour disparaître.",
-            "L'écho des ailes passe sans trace.",
-            "Pourquoi es-tu encore là ?"
+        const symbol = document.getElementById("symbol");
+        const message = document.getElementById("message");
+        const hiddenZone = document.getElementById("hidden");
+        let clicks = 0;
+        let idleTime = 0;
+
+        const whispers = [
+            "L'oiseau observe en silence...",
+            "Tu effleures le monde des échos.",
+            "Reste, et tu entendras plus.",
+            "Le souffle devient murmure.",
+            "L'ombre s'efface doucement."
         ];
 
-        const hour = new Date().getHours();
-        const isNight = (hour >= 22 || hour <= 5); // Déclenchement la nuit
+        // Changement du symbole après chaque clic
+        symbol.addEventListener("click", () => {
+            clicks++;
+            symbol.textContent = clicks % 2 === 0 ? "✶" : "𓏢";
+            symbol.style.transform = `rotate(${clicks * 30}deg) scale(${1 + clicks * 0.1})`;
+            revealMessage();
+            document.body.style.backgroundColor = `rgb(${10 + clicks * 20}, 10, 10)`;
+        });
 
-        function randomChoice(array) {
-            return array[Math.floor(Math.random() * array.length)];
+        // Révélation des messages
+        function revealMessage() {
+            const randomMessage = whispers[Math.floor(Math.random() * whispers.length)];
+            message.textContent = randomMessage;
+            message.style.opacity = 1;
+            setTimeout(() => message.style.opacity = 0, 4000);
         }
 
-        function revealMystique() {
-            const symbol = document.getElementById("symbol");
-            const message = document.getElementById("message");
-
-            symbol.textContent = randomChoice(symbols);
-            setTimeout(() => {
-                message.textContent = randomChoice(messages);
+        // Inactivité : déclenche un message secret
+        setInterval(() => {
+            idleTime++;
+            if (idleTime === 60) {
+                message.textContent = "Rien ne bouge, et pourtant tout change...";
                 message.style.opacity = 1;
-            }, Math.random() * 5000); // Retard aléatoire pour déranger
-        }
+                symbol.textContent = "𓅆";
+            }
+        }, 1000);
 
-        function hiddenTrigger() {
-            // Un déclencheur caché après 45 secondes exactes
-            setTimeout(() => {
-                alert("45 secondes, 45 souffles. Reviens plus tard.");
-            }, 45000);
-        }
-
-        function moveEffect() {
-            window.addEventListener("mousemove", () => {
-                const symbol = document.getElementById("symbol");
-                symbol.style.opacity = Math.random().toFixed(2);
-            });
-        }
-
-        if (isNight) {
-            document.body.style.backgroundColor = "#080808";
-            messages.push("La nuit, tout se tait. Même toi.");
-        }
-
-        revealMystique();
-        hiddenTrigger();
-        moveEffect();
+        // Révélation cachée : Interaction avec une zone invisible
+        hiddenZone.addEventListener("mousemove", () => {
+            message.textContent = "Tu as trouvé un passage.";
+            message.style.opacity = 1;
+            document.body.style.backgroundColor = "#1e1e1e";
+            symbol.textContent = "🜃";
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>45t - La Pierre Brute</title>
+    <style>
+        body {
+            background-color: #0b0b0b;
+            color: #d0d0d0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .symbol {
+            font-size: 5em;
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+        .message {
+            font-size: 1.3em;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="symbol" class="symbol"></div>
+    <div id="message" class="message"></div>
+
+    <script>
+        const symbols = ["𓅃", "🜃", "𓏢", "𓅆", "✶"];
+        const messages = [
+            "La pierre brute ne connaît pas ton nom.",
+            "Tu cherches, mais qui t'observe ?",
+            "Le silence te parle. Écoute.",
+            "45 secondes suffisent pour disparaître.",
+            "L'écho des ailes passe sans trace.",
+            "Pourquoi es-tu encore là ?"
+        ];
+
+        const hour = new Date().getHours();
+        const isNight = (hour >= 22 || hour <= 5); // Déclenchement la nuit
+
+        function randomChoice(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function revealMystique() {
+            const symbol = document.getElementById("symbol");
+            const message = document.getElementById("message");
+
+            symbol.textContent = randomChoice(symbols);
+            setTimeout(() => {
+                message.textContent = randomChoice(messages);
+                message.style.opacity = 1;
+            }, Math.random() * 5000); // Retard aléatoire pour déranger
+        }
+
+        function hiddenTrigger() {
+            // Un déclencheur caché après 45 secondes exactes
+            setTimeout(() => {
+                alert("45 secondes, 45 souffles. Reviens plus tard.");
+            }, 45000);
+        }
+
+        function moveEffect() {
+            window.addEventListener("mousemove", () => {
+                const symbol = document.getElementById("symbol");
+                symbol.style.opacity = Math.random().toFixed(2);
+            });
+        }
+
+        if (isNight) {
+            document.body.style.backgroundColor = "#080808";
+            messages.push("La nuit, tout se tait. Même toi.");
+        }
+
+        revealMystique();
+        hiddenTrigger();
+        moveEffect();
+    </script>
+</body>
+</html>

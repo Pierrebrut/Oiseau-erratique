@@ -2,100 +2,113 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oiseau Erratique - 3D</title>
+    <title>La Machine Qui Respire</title>
     <style>
         body {
             margin: 0;
+            background: #000;
             overflow: hidden;
-            background-color: #0d0d0d;
-            color: #f0f0f0;
-            font-family: "Courier New", monospace;
         }
-        .overlay {
-            position: absolute;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.2em;
-            color: rgba(255, 255, 255, 0.8);
-            opacity: 0;
-            transition: opacity 2s;
+        canvas {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay">𓅃</div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <canvas id="life"></canvas>
     <script>
-        // Création de la scène 3D
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        const canvas = document.getElementById("life");
+        const ctx = canvas.getContext("2d");
 
-        // Lumière
-        const light = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(light);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-        // Création de sphères flottantes
-        const spheres = [];
-        const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x800000, transparent: true, opacity: 0.7 });
+        const resolution = 10;
+        const cols = Math.floor(canvas.width / resolution);
+        const rows = Math.floor(canvas.height / resolution);
+        let grid = buildGrid();
+        let rules = [2, 3]; // Règles d'évolution (vivre ou naître)
 
-        for (let i = 0; i < 10; i++) {
-            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            sphere.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
-            scene.add(sphere);
-            spheres.push(sphere);
+        function buildGrid() {
+            return new Array(cols).fill(null).map(() => new Array(rows).fill(0));
         }
 
-        camera.position.z = 10;
-
-        // Variables pour état de l'évolution
-        let state = parseInt(localStorage.getItem("state")) || 0;
-
-        function evolveScene() {
-            state++;
-            localStorage.setItem("state", state);
-
-            spheres.forEach((sphere) => {
-                sphere.scale.set(1 + state / 20, 1 + state / 20, 1 + state / 20);
-                sphere.position.x += (Math.random() - 0.5) * 0.5;
-                sphere.position.y += (Math.random() - 0.5) * 0.5;
-                sphere.material.color.setHex(Math.random() * 0xffffff);
-            });
-
-            const overlay = document.getElementById("overlay");
-            overlay.textContent = generatePhrase();
-            overlay.style.opacity = 1;
-            setTimeout(() => overlay.style.opacity = 0, 5000);
+        function seedGrid() {
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    grid[col][row] = Math.random() > 0.9 ? 1 : 0;
+                }
+            }
         }
 
-        function generatePhrase() {
-            const beginnings = ["L'ombre", "La forme", "La fissure", "L'invisible"];
-            const middles = ["s'étire", "s'effondre", "respire", "danse"];
-            const ends = ["à jamais", "dans le vide", "au-delà", "en silence"];
-            return `${beginnings[Math.floor(Math.random() * beginnings.length)]} ${middles[Math.floor(Math.random() * middles.length)]} ${ends[Math.floor(Math.random() * ends.length)]}.`;
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    const cell = grid[col][row];
+                    ctx.beginPath();
+                    ctx.rect(col * resolution, row * resolution, resolution, resolution);
+                    ctx.fillStyle = cell ? `rgba(255, 182, 193, 0.7)` : "#000";
+                    ctx.fill();
+                }
+            }
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-
-            spheres.forEach((sphere) => {
-                sphere.rotation.x += 0.001;
-                sphere.rotation.y += 0.001;
-            });
-
-            renderer.render(scene, camera);
+        function countNeighbors(grid, x, y) {
+            const neighbors = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1], [0, 1],
+                [1, -1], [1, 0], [1, 1]
+            ];
+            return neighbors.reduce((count, [dx, dy]) => {
+                const col = x + dx;
+                const row = y + dy;
+                return count + (grid[col]?.[row] || 0);
+            }, 0);
         }
 
-        // Évolution au clic
-        window.addEventListener("click", evolveScene);
+        function nextGeneration() {
+            const nextGrid = buildGrid();
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    const cell = grid[col][row];
+                    const neighbors = countNeighbors(grid, col, row);
 
-        animate();
+                    if (cell && (neighbors < rules[0] || neighbors > rules[1])) {
+                        nextGrid[col][row] = 0; // Mort
+                    } else if (!cell && neighbors === rules[1]) {
+                        nextGrid[col][row] = 1; // Naissance
+                    } else {
+                        nextGrid[col][row] = cell; // Stase
+                    }
+                }
+            }
+            grid = nextGrid;
+        }
+
+        function mutateRules() {
+            // Les règles évoluent légèrement au fil du temps
+            if (Math.random() > 0.99) {
+                rules[0] = Math.floor(Math.random() * 4) + 1; // 1 à 4
+                rules[1] = Math.floor(Math.random() * 5) + 2; // 2 à 6
+            }
+        }
+
+        canvas.addEventListener("click", (e) => {
+            const col = Math.floor(e.clientX / resolution);
+            const row = Math.floor(e.clientY / resolution);
+            grid[col][row] = 1; // Naissance d'une cellule au clic
+        });
+
+        function update() {
+            mutateRules();
+            nextGeneration();
+            drawGrid();
+            requestAnimationFrame(update);
+        }
+
+        seedGrid();
+        update();
     </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Oiseau Erratique - Fractales Dynamiques</title>
+    <title>Fractales Dynamiques - Déplacement et Mort</title>
     <style>
         body {
             margin: 0;
@@ -32,31 +32,31 @@
         document.body.appendChild(renderer.domElement);
 
         // Lumières
-        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Lumière ambiante
+        const ambientLight = new THREE.AmbientLight(0x404040, 2);
         scene.add(ambientLight);
 
         const pointLight = new THREE.PointLight(0xffffff, 1, 100);
         pointLight.position.set(10, 10, 10);
         scene.add(pointLight);
 
-        // Matériau pour les fractales
-        const material = new THREE.MeshStandardMaterial({
-            color: 0xffb6c1,
-            emissive: 0x222222,
-            flatShading: true
-        });
-
         // Collection des fractales
         const fractals = [];
+        const maxLife = 500; // Durée de vie maximale des cubes
 
         // Fonction pour créer une fractale dynamique
         function createFractal(x, y, z, size, depth, velocity) {
             if (depth === 0) return;
 
             const geometry = new THREE.BoxGeometry(size, size, size);
+            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
             const cube = new THREE.Mesh(geometry, material);
+
             cube.position.set(x, y, z);
-            cube.userData = { size, velocity };
+            cube.userData = {
+                size,
+                velocity,
+                life: maxLife
+            };
 
             fractals.push(cube);
             scene.add(cube);
@@ -73,48 +73,57 @@
         }
 
         // Générer une fractale initiale
-        createFractal(0, 0, 0, 2, 3, { x: 0.005, y: 0.005, z: 0.002 });
+        createFractal(0, 0, 0, 2, 3, {
+            x: (Math.random() - 0.5) * 0.1,
+            y: (Math.random() - 0.5) * 0.1,
+            z: (Math.random() - 0.5) * 0.1
+        });
 
         // Animation de la scène et des fractales
         camera.position.z = 15;
 
         function animate() {
-            fractals.forEach((fractal) => {
-                fractal.rotation.x += fractal.userData.velocity.x;
-                fractal.rotation.y += fractal.userData.velocity.y;
-                fractal.rotation.z += fractal.userData.velocity.z;
+            fractals.forEach((fractal, index) => {
+                // Mise à jour de la position
+                fractal.position.x += fractal.userData.velocity.x;
+                fractal.position.y += fractal.userData.velocity.y;
+                fractal.position.z += fractal.userData.velocity.z;
 
-                // Faire "respirer" la fractale
-                fractal.scale.x = 1 + 0.1 * Math.sin(Date.now() * 0.001);
-                fractal.scale.y = 1 + 0.1 * Math.cos(Date.now() * 0.001);
-                fractal.scale.z = 1 + 0.1 * Math.sin(Date.now() * 0.001 + fractal.position.x);
+                // Mise à jour de la vie
+                fractal.userData.life -= 1;
+                const lifeRatio = fractal.userData.life / maxLife;
+                fractal.material.color.setHSL(lifeRatio * 0.3, 1, lifeRatio);
+
+                // Supprimer le cube s'il est "mort"
+                if (fractal.userData.life <= 0) {
+                    scene.remove(fractal);
+                    fractals.splice(index, 1);
+                }
             });
 
-            scene.rotation.y += 0.002; // Rotation lente de la scène globale
+            // Rotation globale de la scène
+            scene.rotation.y += 0.002;
+
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
         }
 
         animate();
 
-        // Interaction : Modifier les fractales au clic
+        // Interaction : Ajouter une fractale au clic
         window.addEventListener("click", () => {
-            const randomFractal = fractals[Math.floor(Math.random() * fractals.length)];
-            if (randomFractal) {
-                randomFractal.userData.velocity.x += (Math.random() - 0.5) * 0.01;
-                randomFractal.userData.velocity.y += (Math.random() - 0.5) * 0.01;
-                randomFractal.userData.velocity.z += (Math.random() - 0.5) * 0.01;
-
-                // Ajouter une fractale supplémentaire
-                createFractal(
-                    (Math.random() - 0.5) * 20,
-                    (Math.random() - 0.5) * 20,
-                    (Math.random() - 0.5) * 20,
-                    1.5,
-                    3,
-                    { x: Math.random() * 0.01, y: Math.random() * 0.01, z: Math.random() * 0.01 }
-                );
-            }
+            createFractal(
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 20,
+                (Math.random() - 0.5) * 20,
+                1.5,
+                3,
+                {
+                    x: (Math.random() - 0.5) * 0.1,
+                    y: (Math.random() - 0.5) * 0.1,
+                    z: (Math.random() - 0.5) * 0.1
+                }
+            );
         });
 
         // Redimensionnement de la fenêtre

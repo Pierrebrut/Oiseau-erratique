@@ -2,13 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Créature Vivante en 3D</title>
+    <title>Créature Visqueuse en 3D</title>
     <style>
         body {
             margin: 0;
             background-color: #000;
             overflow: hidden;
-            font-family: Arial, sans-serif;
         }
         .info {
             position: absolute;
@@ -21,7 +20,7 @@
     </style>
 </head>
 <body>
-    <div class="info">Cliquez pour ajouter de l'énergie à la créature.</div>
+    <div class="info">Cliquez pour ajouter de l'énergie.</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // Initialisation de la scène 3D
@@ -39,35 +38,37 @@
         pointLight.position.set(10, 10, 10);
         scene.add(pointLight);
 
-        // Grille pour représenter la créature
-        const size = 10; // Dimensions de la grille
-        const grid = new Array(size).fill(null).map(() => new Array(size).fill(null).map(() => new Array(size).fill(0)));
+        // Taille de la grille et des cubes
+        const size = 20; // Dimensions de la grille (20x20x20)
+        const cubeSize = 0.2; // Taille d'un cube
+
+        // Grille 3D
+        const grid = new Array(size)
+            .fill(null)
+            .map(() => new Array(size).fill(null).map(() => new Array(size).fill(0)));
 
         const cubes = []; // Stocker les cubes actifs
-        const cubeSize = 0.5; // Taille d'un cube
-
-        // Matériau des cubes
-        const material = new THREE.MeshStandardMaterial({
-            color: 0xffb6c1,
-            emissive: 0x000000,
-            flatShading: true
-        });
+        const material = new THREE.MeshStandardMaterial({ color: 0xffb6c1 });
 
         // Créer un cube dans la grille
         function createCube(x, y, z) {
             const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
             const cube = new THREE.Mesh(geometry, material);
-            cube.position.set(x - size / 2, y - size / 2, z - size / 2);
+            cube.position.set(
+                (x - size / 2) * cubeSize,
+                (y - size / 2) * cubeSize,
+                (z - size / 2) * cubeSize
+            );
             scene.add(cube);
             cubes.push({ cube, x, y, z });
         }
 
-        // Initialiser la créature avec quelques cellules
+        // Initialiser la créature
         function initializeCreature() {
-            for (let x = 4; x <= 6; x++) {
-                for (let y = 4; y <= 6; y++) {
-                    for (let z = 4; z <= 6; z++) {
-                        if (Math.random() > 0.7) {
+            for (let x = 8; x < 12; x++) {
+                for (let y = 8; y < 12; y++) {
+                    for (let z = 8; z < 12; z++) {
+                        if (Math.random() > 0.8) {
                             grid[x][y][z] = 1;
                             createCube(x, y, z);
                         }
@@ -76,13 +77,13 @@
             }
         }
 
-        // Compter les voisins actifs autour d'une cellule
+        // Compter les voisins actifs
         function countNeighbors(x, y, z) {
             let count = 0;
             for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {
                     for (let dz = -1; dz <= 1; dz++) {
-                        if (dx === 0 && dy === 0 && dz === 0) continue; // Ignorer la cellule elle-même
+                        if (dx === 0 && dy === 0 && dz === 0) continue;
                         const nx = x + dx;
                         const ny = y + dy;
                         const nz = z + dz;
@@ -95,9 +96,9 @@
             return count;
         }
 
-        // Appliquer les règles du jeu de la vie
+        // Appliquer les règles de la vie
         function updateCreature() {
-            const newGrid = JSON.parse(JSON.stringify(grid)); // Copier la grille actuelle
+            const newGrid = JSON.parse(JSON.stringify(grid)); // Copie de la grille actuelle
 
             for (let x = 0; x < size; x++) {
                 for (let y = 0; y < size; y++) {
@@ -115,11 +116,11 @@
                 }
             }
 
-            // Mettre à jour la grille et les cubes
+            // Mettre à jour les cubes
             for (let i = cubes.length - 1; i >= 0; i--) {
                 const { cube, x, y, z } = cubes[i];
                 if (newGrid[x][y][z] === 0) {
-                    scene.remove(cube); // Supprimer le cube de la scène
+                    scene.remove(cube);
                     cubes.splice(i, 1);
                 }
             }
@@ -128,13 +129,15 @@
                 for (let y = 0; y < size; y++) {
                     for (let z = 0; z < size; z++) {
                         if (newGrid[x][y][z] === 1 && grid[x][y][z] === 0) {
-                            createCube(x, y, z); // Ajouter un nouveau cube
+                            createCube(x, y, z);
                         }
                     }
                 }
             }
 
-            grid.forEach((layer, x) => layer.forEach((row, y) => row.forEach((cell, z) => (grid[x][y][z] = newGrid[x][y][z]))));
+            grid.forEach((layer, x) =>
+                layer.forEach((row, y) => row.forEach((cell, z) => (grid[x][y][z] = newGrid[x][y][z])))
+            );
         }
 
         // Animation et mise à jour
@@ -156,4 +159,4 @@
         animate();
     </script>
 </body>
-</html>p
+</html>

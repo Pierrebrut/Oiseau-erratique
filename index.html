@@ -2,39 +2,23 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Fragments de Vie</title>
+    <title>Jeu de la Vie - Fractales</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden;
             background: #000;
-            color: #fff;
-            font-family: monospace;
+            overflow: hidden;
         }
         canvas {
             display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .log {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            font-size: 1.2em;
-            color: rgba(255, 255, 255, 0.7);
-            max-width: 90%;
-            line-height: 1.5;
         }
     </style>
 </head>
 <body>
     <canvas id="life"></canvas>
-    <div class="log" id="log"></div>
     <script>
         const canvas = document.getElementById("life");
         const ctx = canvas.getContext("2d");
-        const log = document.getElementById("log");
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -42,29 +26,23 @@
         const resolution = 10;
         const cols = Math.floor(canvas.width / resolution);
         const rows = Math.floor(canvas.height / resolution);
-        let grid = buildGrid();
-        let generation = 0;
 
-        const phrases = [
-            "L'équilibre s'efface...",
-            "Un murmure naît.",
-            "Le chaos respire.",
-            "Une structure émerge.",
-            "L'ordre vacille.",
-            "Tout est fragile.",
-            "La vie s'étend."
-        ];
+        let grid = buildGrid();
 
         function buildGrid() {
             return new Array(cols).fill(null).map(() => new Array(rows).fill(0));
         }
 
         function seedGrid() {
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    grid[col][row] = Math.random() > 0.9 ? 1 : 0;
-                }
-            }
+            const midCol = Math.floor(cols / 2);
+            const midRow = Math.floor(rows / 2);
+
+            // Initialisation centrale pour symétrie
+            grid[midCol][midRow] = 1;
+            grid[midCol - 1][midRow] = 1;
+            grid[midCol + 1][midRow] = 1;
+            grid[midCol][midRow - 1] = 1;
+            grid[midCol][midRow + 1] = 1;
         }
 
         function drawGrid() {
@@ -93,43 +71,32 @@
             }, 0);
         }
 
+        function fractalRules(grid, x, y) {
+            const neighbors = countNeighbors(grid, x, y);
+
+            // Règles spécifiques pour générer des fractales
+            if (grid[x][y] === 1) {
+                // Une cellule vivante reste vivante si elle a 2 ou 3 voisins
+                return neighbors === 2 || neighbors === 3 ? 1 : 0;
+            } else {
+                // Une cellule morte devient vivante si elle a exactement 2 voisins
+                return neighbors === 2 ? 1 : 0;
+            }
+        }
+
         function nextGeneration() {
             const nextGrid = buildGrid();
             for (let col = 0; col < cols; col++) {
                 for (let row = 0; row < rows; row++) {
-                    const cell = grid[col][row];
-                    const neighbors = countNeighbors(grid, col, row);
-
-                    if (cell && (neighbors < 2 || neighbors > 3)) {
-                        nextGrid[col][row] = 0; // Mort
-                    } else if (!cell && neighbors === 3) {
-                        nextGrid[col][row] = 1; // Naissance
-                    } else {
-                        nextGrid[col][row] = cell; // Stase
-                    }
+                    nextGrid[col][row] = fractalRules(grid, col, row);
                 }
             }
             grid = nextGrid;
         }
 
-        function updateLog() {
-            const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-            const time = new Date().toLocaleTimeString();
-            log.textContent = `[${time}] ${phrase}`;
-        }
-
-        canvas.addEventListener("click", (e) => {
-            const col = Math.floor(e.clientX / resolution);
-            const row = Math.floor(e.clientY / resolution);
-            grid[col][row] = 1;
-            updateLog();
-        });
-
         function update() {
             nextGeneration();
             drawGrid();
-            if (generation % 10 === 0) updateLog(); // Mise à jour périodique du message
-            generation++;
             requestAnimationFrame(update);
         }
 

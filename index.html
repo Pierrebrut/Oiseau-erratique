@@ -2,113 +2,173 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>La Machine Qui Respire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre Émotionnel Monumental</title>
     <style>
         body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #2c3e50, #4ca1af);
+            color: #fff;
+            text-align: center;
             margin: 0;
-            background: #000;
-            overflow: hidden;
+            padding: 20px;
         }
-        canvas {
-            display: block;
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2em;
+        }
+
+        #tree-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .branch {
+            background: linear-gradient(120deg, #8e44ad, #3498db);
+            border: 1px solid #ecf0f1;
+            padding: 10px 20px;
+            border-radius: 5px;
+            min-width: 200px;
+            text-align: left;
+            font-size: 1em;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .branch:hover {
+            transform: scale(1.1);
+            background: linear-gradient(120deg, #d35400, #c0392b);
+        }
+
+        button {
+            background-color: #e67e22;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background-color: #d35400;
         }
     </style>
 </head>
 <body>
-    <canvas id="life"></canvas>
+    <h1>Arbre Émotionnel Monumental</h1>
+    <p>Explorez les profondeurs infinies des émotions à travers des choix stratégiques et créatifs.</p>
+    <div id="tree-container">
+        <div class="branch" id="root">Racine : Choisissez entre Plaisir et Douleur</div>
+    </div>
+    <button onclick="growTree('Plaisir')">Plaisir</button>
+    <button onclick="growTree('Douleur')">Douleur</button>
+
     <script>
-        const canvas = document.getElementById("life");
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const resolution = 10;
-        const cols = Math.floor(canvas.width / resolution);
-        const rows = Math.floor(canvas.height / resolution);
-        let grid = buildGrid();
-        let rules = [2, 3]; // Règles d'évolution (vivre ou naître)
-
-        function buildGrid() {
-            return new Array(cols).fill(null).map(() => new Array(rows).fill(0));
-        }
-
-        function seedGrid() {
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    grid[col][row] = Math.random() > 0.9 ? 1 : 0;
+        const emotionsTree = {
+            Plaisir: {
+                next: {
+                    Satiété: {
+                        next: {
+                            Sérénité: {
+                                next: {
+                                    "Joie Intense": { next: null },
+                                    "Nostalgie Douce": { next: null }
+                                }
+                            },
+                            Motivation: {
+                                next: {
+                                    "Énergie Créative": { next: null },
+                                    "Excitation Profonde": { next: null }
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
-
-        function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    const cell = grid[col][row];
-                    ctx.beginPath();
-                    ctx.rect(col * resolution, row * resolution, resolution, resolution);
-                    ctx.fillStyle = cell ? `rgba(255, 182, 193, 0.7)` : "#000";
-                    ctx.fill();
+            },
+            Douleur: {
+                next: {
+                    Faim: {
+                        next: {
+                            Frustration: {
+                                next: {
+                                    "Rage Puissante": { next: null },
+                                    "Mélancolie Profonde": { next: null }
+                                }
+                            },
+                            Résilience: {
+                                next: {
+                                    "Force Intérieure": { next: null },
+                                    "Sagesse Tragique": { next: null }
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
-
-        function countNeighbors(grid, x, y) {
-            const neighbors = [
-                [-1, -1], [-1, 0], [-1, 1],
-                [0, -1], [0, 1],
-                [1, -1], [1, 0], [1, 1]
-            ];
-            return neighbors.reduce((count, [dx, dy]) => {
-                const col = x + dx;
-                const row = y + dy;
-                return count + (grid[col]?.[row] || 0);
-            }, 0);
-        }
-
-        function nextGeneration() {
-            const nextGrid = buildGrid();
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    const cell = grid[col][row];
-                    const neighbors = countNeighbors(grid, col, row);
-
-                    if (cell && (neighbors < rules[0] || neighbors > rules[1])) {
-                        nextGrid[col][row] = 0; // Mort
-                    } else if (!cell && neighbors === rules[1]) {
-                        nextGrid[col][row] = 1; // Naissance
-                    } else {
-                        nextGrid[col][row] = cell; // Stase
+            },
+            Hybrides: {
+                "Plaisir + Douleur": {
+                    next: {
+                        "Joie Mélancolique": {
+                            next: {
+                                "Extase Contradictoire": { next: null },
+                                "Paix Introspective": { next: null }
+                            }
+                        },
+                        "Douce Rage": {
+                            next: {
+                                "Motivation Déterminée": { next: null },
+                                "Tristesse Enveloppante": { next: null }
+                            }
+                        }
                     }
                 }
             }
-            grid = nextGrid;
-        }
+        };
 
-        function mutateRules() {
-            // Les règles évoluent légèrement au fil du temps
-            if (Math.random() > 0.99) {
-                rules[0] = Math.floor(Math.random() * 4) + 1; // 1 à 4
-                rules[1] = Math.floor(Math.random() * 5) + 2; // 2 à 6
+        let currentBranch = { name: "Racine", next: emotionsTree };
+
+        function growTree(choice) {
+            const nextBranch = currentBranch.next[choice];
+            if (!nextBranch) {
+                alert("Fin de la branche : Plus d'émotions à explorer.");
+                return;
             }
+
+            const newBranchElement = document.createElement("div");
+            newBranchElement.className = "branch";
+            newBranchElement.innerText = `${choice}`;
+
+            document.getElementById("tree-container").appendChild(newBranchElement);
+
+            currentBranch = { name: choice, next: nextBranch.next };
+
+            updateButtons(nextBranch.next);
         }
 
-        canvas.addEventListener("click", (e) => {
-            const col = Math.floor(e.clientX / resolution);
-            const row = Math.floor(e.clientY / resolution);
-            grid[col][row] = 1; // Naissance d'une cellule au clic
-        });
-
-        function update() {
-            mutateRules();
-            nextGeneration();
-            drawGrid();
-            requestAnimationFrame(update);
+        function updateButtons(nextOptions) {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach((button) => {
+                if (nextOptions && nextOptions[button.innerText]) {
+                    button.style.display = "inline-block";
+                } else if (nextOptions && currentBranch.name === "Plaisir + Douleur") {
+                    button.innerText = "Fusion";
+                    button.style.display = "inline-block";
+                } else {
+                    button.style.display = "none";
+                }
+            });
         }
 
-        seedGrid();
-        update();
+        updateButtons(currentBranch.next);
     </script>
 </body>
 </html>

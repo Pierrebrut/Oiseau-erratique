@@ -3,152 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbre Mystique des Émotions</title>
+    <title>Odyssée des Émotions</title>
     <style>
         body {
-            font-family: 'Georgia', serif;
             margin: 0;
-            background: linear-gradient(to bottom, #1a1a2e, #16213e, #0f3460);
+            padding: 0;
+            background: radial-gradient(circle, #1a1a2e, #16213e, #0f3460);
             color: white;
+            font-family: 'Georgia', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
         }
 
         h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-shadow: 0px 0px 10px #ffd700;
+            font-size: 3em;
+            margin: 20px;
             color: #ffd700;
+            text-shadow: 0px 0px 20px rgba(255, 221, 0, 0.8);
+            animation: pulse 3s infinite;
         }
 
-        #tree {
+        @keyframes pulse {
+            0% { text-shadow: 0px 0px 10px rgba(255, 221, 0, 0.5); }
+            50% { text-shadow: 0px 0px 30px rgba(255, 221, 0, 1); }
+            100% { text-shadow: 0px 0px 10px rgba(255, 221, 0, 0.5); }
+        }
+
+        #emotion-container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 80%;
+            max-height: 60%;
             overflow-y: auto;
-            height: 80vh;
-            width: 90vw;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 10px;
         }
 
-        .node {
-            margin: 10px;
-            padding: 10px 20px;
+        .emotion {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s, background 0.3s;
-            font-size: 1.2em;
-            text-align: center;
-        }
-
-        .node:hover {
-            transform: scale(1.1);
-            background: rgba(255, 200, 100, 0.3);
-        }
-
-        .description {
-            margin: 10px;
-            padding: 15px 20px;
-            font-size: 1em;
-            text-align: left;
-            color: #ffdd99;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            color: #ffdd99;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.5s;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .emotion:hover {
+            transform: scale(1.1);
+            background: rgba(255, 200, 100, 0.2);
+        }
+
+        #description {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .branch {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-left: 20px;
+            text-align: center;
+            max-width: 70%;
         }
     </style>
 </head>
 <body>
-    <h1>Arbre Mystique des Émotions</h1>
-    <div id="tree">
-        <div class="node" onclick="expandNode(this, 'Plaisir')">Plaisir</div>
-        <div class="node" onclick="expandNode(this, 'Douleur')">Douleur</div>
+    <h1>Odyssée des Émotions</h1>
+    <div id="emotion-container">
+        <div class="emotion" onclick="generateBranch('Plaisir')">Plaisir</div>
+        <div class="emotion" onclick="generateBranch('Douleur')">Douleur</div>
     </div>
+    <div id="description">Cliquez sur une émotion pour découvrir ses ramifications.</div>
+
     <script>
         const modifiers = [
-            "Lumineuse", "Intense", "Calme", "Explosive", "Éthérée",
-            "Tragique", "Profonde", "Erratique", "Apaisante", "Créative",
-            "Nostalgique", "Puissante", "Fragile", "Mystique", "Insaisissable"
+            "Lumineuse", "Intense", "Éthérée", "Tragique", "Erratique",
+            "Profonde", "Apaisante", "Créative", "Insaisissable", "Mystique"
         ];
 
-        const descriptions = {
-            "Plaisir Lumineuse": "Un sentiment de chaleur éclatante qui illumine l'âme.",
-            "Plaisir Intense": "Une vague écrasante de bonheur qui submerge tout.",
-            "Douleur Explosive": "Une force brutale qui détruit pour renaître.",
-            "Douleur Apaisante": "Une tristesse douce, presque réconfortante.",
-            "Nostalgie Mystique": "Une rêverie lointaine, teintée de magie et de souvenirs perdus.",
-            "Joie Erratique": "Un bonheur imprévisible, dansant au gré du vent."
-        };
+        const descriptions = [
+            "Une émotion qui caresse l'âme avec douceur.",
+            "Un sentiment qui danse entre lumière et ombre.",
+            "Une force mystérieuse, insaisissable et profonde.",
+            "Une vague d'énergie, apaisante mais puissante.",
+            "Une trace de nostalgie, empreinte de rêve et de silence."
+        ];
+
+        const sounds = [
+            "https://freesound.org/data/previews/500/500984_10257606-lq.mp3", // Sound 1
+            "https://freesound.org/data/previews/524/524206_10257606-lq.mp3", // Sound 2
+        ];
 
         function generateEmotion(baseEmotion) {
-            const randomModifier = modifiers[Math.floor(Math.random() * modifiers.length)];
-            return `${baseEmotion} ${randomModifier}`;
+            const modifier = modifiers[Math.floor(Math.random() * modifiers.length)];
+            return `${baseEmotion} ${modifier}`;
         }
 
-        function getDescription(emotion) {
-            return descriptions[emotion] || "Une émotion indescriptible qui échappe à toute logique.";
+        function generateDescription(emotion) {
+            return descriptions[Math.floor(Math.random() * descriptions.length)];
         }
 
-        function expandNode(node, emotion) {
-            // Check if already expanded
-            if (node.nextSibling && node.nextSibling.classList.contains("branch")) return;
+        function playSound() {
+            const audio = new Audio(sounds[Math.floor(Math.random() * sounds.length)]);
+            audio.play();
+        }
 
-            const branch = document.createElement("div");
-            branch.className = "branch";
+        function generateBranch(baseEmotion) {
+            const container = document.getElementById('emotion-container');
+            container.innerHTML = ''; // Clear previous emotions
+            playSound(); // Play sound effect
 
-            for (let i = 0; i < 3; i++) { // Generate 3 new emotions per level
-                const newEmotion = generateEmotion(emotion);
-                const childNode = document.createElement("div");
-                childNode.className = "node";
-                childNode.innerText = newEmotion;
-                childNode.onclick = () => {
-                    expandNode(childNode, newEmotion);
+            for (let i = 0; i < 3; i++) {
+                const newEmotion = generateEmotion(baseEmotion);
+                const emotionElement = document.createElement('div');
+                emotionElement.className = 'emotion';
+                emotionElement.innerText = newEmotion;
+                emotionElement.onclick = () => {
+                    generateBranch(newEmotion);
                     showDescription(newEmotion);
                 };
-                branch.appendChild(childNode);
+                container.appendChild(emotionElement);
             }
-
-            node.parentElement.appendChild(branch);
         }
 
         function showDescription(emotion) {
-            const descriptionContainer = document.getElementById("description-container");
-            if (!descriptionContainer) {
-                const newDescription = document.createElement("div");
-                newDescription.id = "description-container";
-                newDescription.className = "description";
-                newDescription.innerText = getDescription(emotion);
-                document.body.appendChild(newDescription);
-            } else {
-                descriptionContainer.innerText = getDescription(emotion);
-            }
+            const description = generateDescription(emotion);
+            document.getElementById('description').innerText = `${emotion} : ${description}`;
         }
     </script>
 </body>

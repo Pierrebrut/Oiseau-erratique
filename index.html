@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Fractales Dynamiques - Déplacement et Mort</title>
+    <title>Créature Vivante en 3D</title>
     <style>
         body {
             margin: 0;
@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    <div class="info">Cliquez pour perturber les fractales.</div>
+    <div class="info">Cliquez pour ajouter de l'énergie à la créature.</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // Initialisation de la scène 3D
@@ -39,99 +39,121 @@
         pointLight.position.set(10, 10, 10);
         scene.add(pointLight);
 
-        // Collection des fractales
-        const fractals = [];
-        const maxLife = 500; // Durée de vie maximale des cubes
+        // Grille pour représenter la créature
+        const size = 10; // Dimensions de la grille
+        const grid = new Array(size).fill(null).map(() => new Array(size).fill(null).map(() => new Array(size).fill(0)));
 
-        // Fonction pour créer une fractale dynamique
-        function createFractal(x, y, z, size, depth, velocity) {
-            if (depth === 0) return;
+        const cubes = []; // Stocker les cubes actifs
+        const cubeSize = 0.5; // Taille d'un cube
 
-            const geometry = new THREE.BoxGeometry(size, size, size);
-            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            const cube = new THREE.Mesh(geometry, material);
-
-            cube.position.set(x, y, z);
-            cube.userData = {
-                size,
-                velocity,
-                life: maxLife
-            };
-
-            fractals.push(cube);
-            scene.add(cube);
-
-            const newSize = size * 0.5; // Réduction de la taille
-            const offset = size * 0.75;
-
-            createFractal(x + offset, y, z, newSize, depth - 1, velocity);
-            createFractal(x - offset, y, z, newSize, depth - 1, velocity);
-            createFractal(x, y + offset, z, newSize, depth - 1, velocity);
-            createFractal(x, y - offset, z, newSize, depth - 1, velocity);
-            createFractal(x, y, z + offset, newSize, depth - 1, velocity);
-            createFractal(x, y, z - offset, newSize, depth - 1, velocity);
-        }
-
-        // Générer une fractale initiale
-        createFractal(0, 0, 0, 2, 3, {
-            x: (Math.random() - 0.5) * 0.1,
-            y: (Math.random() - 0.5) * 0.1,
-            z: (Math.random() - 0.5) * 0.1
+        // Matériau des cubes
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffb6c1,
+            emissive: 0x000000,
+            flatShading: true
         });
 
-        // Animation de la scène et des fractales
-        camera.position.z = 15;
+        // Créer un cube dans la grille
+        function createCube(x, y, z) {
+            const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(x - size / 2, y - size / 2, z - size / 2);
+            scene.add(cube);
+            cubes.push({ cube, x, y, z });
+        }
 
-        function animate() {
-            fractals.forEach((fractal, index) => {
-                // Mise à jour de la position
-                fractal.position.x += fractal.userData.velocity.x;
-                fractal.position.y += fractal.userData.velocity.y;
-                fractal.position.z += fractal.userData.velocity.z;
-
-                // Mise à jour de la vie
-                fractal.userData.life -= 1;
-                const lifeRatio = fractal.userData.life / maxLife;
-                fractal.material.color.setHSL(lifeRatio * 0.3, 1, lifeRatio);
-
-                // Supprimer le cube s'il est "mort"
-                if (fractal.userData.life <= 0) {
-                    scene.remove(fractal);
-                    fractals.splice(index, 1);
+        // Initialiser la créature avec quelques cellules
+        function initializeCreature() {
+            for (let x = 4; x <= 6; x++) {
+                for (let y = 4; y <= 6; y++) {
+                    for (let z = 4; z <= 6; z++) {
+                        if (Math.random() > 0.7) {
+                            grid[x][y][z] = 1;
+                            createCube(x, y, z);
+                        }
+                    }
                 }
-            });
+            }
+        }
 
-            // Rotation globale de la scène
-            scene.rotation.y += 0.002;
+        // Compter les voisins actifs autour d'une cellule
+        function countNeighbors(x, y, z) {
+            let count = 0;
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dz = -1; dz <= 1; dz++) {
+                        if (dx === 0 && dy === 0 && dz === 0) continue; // Ignorer la cellule elle-même
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        const nz = z + dz;
+                        if (nx >= 0 && ny >= 0 && nz >= 0 && nx < size && ny < size && nz < size) {
+                            count += grid[nx][ny][nz];
+                        }
+                    }
+                }
+            }
+            return count;
+        }
 
+        // Appliquer les règles du jeu de la vie
+        function updateCreature() {
+            const newGrid = JSON.parse(JSON.stringify(grid)); // Copier la grille actuelle
+
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    for (let z = 0; z < size; z++) {
+                        const neighbors = countNeighbors(x, y, z);
+
+                        if (grid[x][y][z] === 1) {
+                            // Une cellule vivante survit si elle a 2 ou 3 voisins
+                            if (neighbors < 2 || neighbors > 3) newGrid[x][y][z] = 0;
+                        } else {
+                            // Une cellule morte devient vivante si elle a exactement 3 voisins
+                            if (neighbors === 3) newGrid[x][y][z] = 1;
+                        }
+                    }
+                }
+            }
+
+            // Mettre à jour la grille et les cubes
+            for (let i = cubes.length - 1; i >= 0; i--) {
+                const { cube, x, y, z } = cubes[i];
+                if (newGrid[x][y][z] === 0) {
+                    scene.remove(cube); // Supprimer le cube de la scène
+                    cubes.splice(i, 1);
+                }
+            }
+
+            for (let x = 0; x < size; x++) {
+                for (let y = 0; y < size; y++) {
+                    for (let z = 0; z < size; z++) {
+                        if (newGrid[x][y][z] === 1 && grid[x][y][z] === 0) {
+                            createCube(x, y, z); // Ajouter un nouveau cube
+                        }
+                    }
+                }
+            }
+
+            grid.forEach((layer, x) => layer.forEach((row, y) => row.forEach((cell, z) => (grid[x][y][z] = newGrid[x][y][z]))));
+        }
+
+        // Animation et mise à jour
+        function animate() {
+            updateCreature();
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
         }
 
-        animate();
-
-        // Interaction : Ajouter une fractale au clic
+        // Interaction
         window.addEventListener("click", () => {
-            createFractal(
-                (Math.random() - 0.5) * 20,
-                (Math.random() - 0.5) * 20,
-                (Math.random() - 0.5) * 20,
-                1.5,
-                3,
-                {
-                    x: (Math.random() - 0.5) * 0.1,
-                    y: (Math.random() - 0.5) * 0.1,
-                    z: (Math.random() - 0.5) * 0.1
-                }
-            );
+            const x = Math.floor(Math.random() * size);
+            const y = Math.floor(Math.random() * size);
+            const z = Math.floor(Math.random() * size);
+            grid[x][y][z] = 1; // Ajouter une cellule vivante
         });
 
-        // Redimensionnement de la fenêtre
-        window.addEventListener("resize", () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        initializeCreature();
+        animate();
     </script>
 </body>
-</html>
+</html>p

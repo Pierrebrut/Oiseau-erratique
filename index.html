@@ -2,16 +2,26 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Fractales 3D Dynamiques</title>
+    <title>Oiseau Erratique - Fractales</title>
     <style>
         body {
             margin: 0;
             background-color: #000;
             overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 1.2em;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
+    <div class="info">Cliquez pour perturber les fractales.</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // Initialisation de la scène 3D
@@ -21,19 +31,22 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Lumière
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-        light.position.set(10, 10, 10);
-        scene.add(light);
+        // Lumières
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Lumière ambiante
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
 
         // Matériau pour les fractales
         const material = new THREE.MeshStandardMaterial({
             color: 0xffb6c1,
-            emissive: 0x000000,
+            emissive: 0x222222,
             flatShading: true
         });
 
-        // Fonction pour créer une fractale simple
+        // Fonction pour créer une fractale
         function createFractal(x, y, z, size, depth) {
             if (depth === 0) return;
 
@@ -56,23 +69,29 @@
         // Générer une fractale initiale
         createFractal(0, 0, 0, 2, 3);
 
-        // Animation
+        // Animation de la scène
         camera.position.z = 15;
 
         function animate() {
             requestAnimationFrame(animate);
-            scene.rotation.y += 0.005; // Rotation de la scène
+            scene.rotation.y += 0.005; // Rotation lente de la scène
             renderer.render(scene, camera);
         }
-
         animate();
 
-        // Interaction : Clic pour ajouter une fractale aléatoire
+        // Interaction : Ajouter une fractale aléatoire au clic
         window.addEventListener("click", () => {
             const x = (Math.random() - 0.5) * 20;
             const y = (Math.random() - 0.5) * 20;
             const z = (Math.random() - 0.5) * 20;
             createFractal(x, y, z, 1.5, 3);
+        });
+
+        // Redimensionnement de la fenêtre
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>

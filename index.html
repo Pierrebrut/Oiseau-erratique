@@ -2,128 +2,100 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Oiseau Erratique</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oiseau Erratique - 3D</title>
     <style>
         body {
             margin: 0;
+            overflow: hidden;
             background-color: #0d0d0d;
             color: #f0f0f0;
             font-family: "Courier New", monospace;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            position: relative;
-            transition: background-color 2s;
         }
-        .symbol {
-            font-size: 5em;
-            animation: float 5s infinite alternate ease-in-out;
-            position: absolute;
-            opacity: 1;
-            transition: transform 1.5s, opacity 1.5s;
-        }
-        @keyframes float {
-            from { transform: translateY(0); }
-            to { transform: translateY(20px); }
-        }
-        .message {
-            font-size: 1.4em;
-            text-align: center;
+        .overlay {
             position: absolute;
             bottom: 10%;
-            color: #b22222;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
             opacity: 0;
-            transition: opacity 2s ease-in-out;
-        }
-        .fragment {
-            position: absolute;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 1.5em;
-            pointer-events: none;
-            animation: drift 15s infinite alternate;
-        }
-        @keyframes drift {
-            from { transform: translateY(0); }
-            to { transform: translateY(-20px); }
+            transition: opacity 2s;
         }
     </style>
 </head>
 <body>
-    <div id="symbol" class="symbol">𓅃</div>
-    <div id="message" class="message"></div>
+    <div class="overlay" id="overlay">𓅃</div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
     <script>
-        const fragments = [
-            "L'ombre respire", "Le vide murmure", "Ton silence m'appelle",
-            "La fissure s'agrandit", "La nuit t'enveloppe", "Rien ne bouge",
-            "Quelque chose s'efface", "Je t'attendais", "Ton regard pèse"
-        ];
+        // Création de la scène 3D
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        const symbol = document.getElementById("symbol");
-        const message = document.getElementById("message");
-        let state = parseInt(localStorage.getItem("state")) || 0;
-        let inactivityTimeout;
+        // Lumière
+        const light = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(light);
 
-        function generateMessage() {
-            const base = fragments[Math.floor(Math.random() * fragments.length)];
-            const modifier = Math.random() > 0.5 ? "Encore." : "Mais pourquoi ?";
-            return `${base}. ${modifier}`;
+        // Création de sphères flottantes
+        const spheres = [];
+        const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x800000, transparent: true, opacity: 0.7 });
+
+        for (let i = 0; i < 10; i++) {
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 10 - 5);
+            scene.add(sphere);
+            spheres.push(sphere);
         }
 
-        function distortSymbol() {
+        camera.position.z = 10;
+
+        // Variables pour état de l'évolution
+        let state = parseInt(localStorage.getItem("state")) || 0;
+
+        function evolveScene() {
             state++;
             localStorage.setItem("state", state);
-            const scale = 1 + Math.random() * 0.3;
-            const rotate = Math.random() * 360;
-            symbol.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
-            document.body.style.backgroundColor = `rgb(${state * 10}, 0, 0)`;
 
-            message.textContent = generateMessage();
-            message.style.opacity = 1;
-            setTimeout(() => message.style.opacity = 0, 5000);
+            spheres.forEach((sphere) => {
+                sphere.scale.set(1 + state / 20, 1 + state / 20, 1 + state / 20);
+                sphere.position.x += (Math.random() - 0.5) * 0.5;
+                sphere.position.y += (Math.random() - 0.5) * 0.5;
+                sphere.material.color.setHex(Math.random() * 0xffffff);
+            });
 
-            if (state % 5 === 0) createFragment();
+            const overlay = document.getElementById("overlay");
+            overlay.textContent = generatePhrase();
+            overlay.style.opacity = 1;
+            setTimeout(() => overlay.style.opacity = 0, 5000);
         }
 
-        function createFragment() {
-            const fragment = document.createElement("div");
-            fragment.className = "fragment";
-            fragment.textContent = fragments[Math.floor(Math.random() * fragments.length)];
-            fragment.style.left = `${Math.random() * 100}vw`;
-            fragment.style.top = `${Math.random() * 100}vh`;
-            document.body.appendChild(fragment);
-            setTimeout(() => fragment.remove(), 15000);
+        function generatePhrase() {
+            const beginnings = ["L'ombre", "La forme", "La fissure", "L'invisible"];
+            const middles = ["s'étire", "s'effondre", "respire", "danse"];
+            const ends = ["à jamais", "dans le vide", "au-delà", "en silence"];
+            return `${beginnings[Math.floor(Math.random() * beginnings.length)]} ${middles[Math.floor(Math.random() * middles.length)]} ${ends[Math.floor(Math.random() * ends.length)]}.`;
         }
 
-        function handleInactivity() {
-            message.textContent = "Je t'attends...";
-            message.style.opacity = 1;
-            setTimeout(() => message.style.opacity = 0, 5000);
+        function animate() {
+            requestAnimationFrame(animate);
+
+            spheres.forEach((sphere) => {
+                sphere.rotation.x += 0.001;
+                sphere.rotation.y += 0.001;
+            });
+
+            renderer.render(scene, camera);
         }
 
-        symbol.addEventListener("click", () => {
-            distortSymbol();
-            clearTimeout(inactivityTimeout);
-            inactivityTimeout = setTimeout(handleInactivity, 30000);
-        });
+        // Évolution au clic
+        window.addEventListener("click", evolveScene);
 
-        window.onload = () => {
-            if (state > 0) {
-                document.body.style.backgroundColor = `rgb(${state * 10}, 0, 0)`;
-            }
-        };
-
-        document.addEventListener("mousemove", (e) => {
-            if (e.clientX < 50 || e.clientY < 50) {
-                message.textContent = "Tu frôles le bord...";
-                message.style.opacity = 1;
-                setTimeout(() => message.style.opacity = 0, 4000);
-            }
-        });
+        animate();
     </script>
 </body>
 </html>

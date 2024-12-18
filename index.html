@@ -2,106 +2,78 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Jeu de la Vie - Fractales</title>
+    <title>Fractales 3D Dynamiques</title>
     <style>
         body {
             margin: 0;
-            background: #000;
+            background-color: #000;
             overflow: hidden;
-        }
-        canvas {
-            display: block;
         }
     </style>
 </head>
 <body>
-    <canvas id="life"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        const canvas = document.getElementById("life");
-        const ctx = canvas.getContext("2d");
+        // Initialisation de la scène 3D
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Lumière
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(10, 10, 10);
+        scene.add(light);
 
-        const resolution = 10;
-        const cols = Math.floor(canvas.width / resolution);
-        const rows = Math.floor(canvas.height / resolution);
+        // Matériau pour les fractales
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffb6c1,
+            emissive: 0x000000,
+            flatShading: true
+        });
 
-        let grid = buildGrid();
+        // Fonction pour créer une fractale simple
+        function createFractal(x, y, z, size, depth) {
+            if (depth === 0) return;
 
-        function buildGrid() {
-            return new Array(cols).fill(null).map(() => new Array(rows).fill(0));
+            const geometry = new THREE.BoxGeometry(size, size, size);
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(x, y, z);
+            scene.add(cube);
+
+            const newSize = size * 0.5; // Réduction de la taille
+            const offset = size * 0.75;
+
+            createFractal(x + offset, y, z, newSize, depth - 1);
+            createFractal(x - offset, y, z, newSize, depth - 1);
+            createFractal(x, y + offset, z, newSize, depth - 1);
+            createFractal(x, y - offset, z, newSize, depth - 1);
+            createFractal(x, y, z + offset, newSize, depth - 1);
+            createFractal(x, y, z - offset, newSize, depth - 1);
         }
 
-        function seedGrid() {
-            const midCol = Math.floor(cols / 2);
-            const midRow = Math.floor(rows / 2);
+        // Générer une fractale initiale
+        createFractal(0, 0, 0, 2, 3);
 
-            // Initialisation centrale pour symétrie
-            grid[midCol][midRow] = 1;
-            grid[midCol - 1][midRow] = 1;
-            grid[midCol + 1][midRow] = 1;
-            grid[midCol][midRow - 1] = 1;
-            grid[midCol][midRow + 1] = 1;
+        // Animation
+        camera.position.z = 15;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            scene.rotation.y += 0.005; // Rotation de la scène
+            renderer.render(scene, camera);
         }
 
-        function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    const cell = grid[col][row];
-                    ctx.beginPath();
-                    ctx.rect(col * resolution, row * resolution, resolution, resolution);
-                    ctx.fillStyle = cell ? `rgba(255, 182, 193, 0.7)` : "#000";
-                    ctx.fill();
-                }
-            }
-        }
+        animate();
 
-        function countNeighbors(grid, x, y) {
-            const neighbors = [
-                [-1, -1], [-1, 0], [-1, 1],
-                [0, -1], [0, 1],
-                [1, -1], [1, 0], [1, 1]
-            ];
-            return neighbors.reduce((count, [dx, dy]) => {
-                const col = x + dx;
-                const row = y + dy;
-                return count + (grid[col]?.[row] || 0);
-            }, 0);
-        }
-
-        function fractalRules(grid, x, y) {
-            const neighbors = countNeighbors(grid, x, y);
-
-            // Règles spécifiques pour générer des fractales
-            if (grid[x][y] === 1) {
-                // Une cellule vivante reste vivante si elle a 2 ou 3 voisins
-                return neighbors === 2 || neighbors === 3 ? 1 : 0;
-            } else {
-                // Une cellule morte devient vivante si elle a exactement 2 voisins
-                return neighbors === 2 ? 1 : 0;
-            }
-        }
-
-        function nextGeneration() {
-            const nextGrid = buildGrid();
-            for (let col = 0; col < cols; col++) {
-                for (let row = 0; row < rows; row++) {
-                    nextGrid[col][row] = fractalRules(grid, col, row);
-                }
-            }
-            grid = nextGrid;
-        }
-
-        function update() {
-            nextGeneration();
-            drawGrid();
-            requestAnimationFrame(update);
-        }
-
-        seedGrid();
-        update();
+        // Interaction : Clic pour ajouter une fractale aléatoire
+        window.addEventListener("click", () => {
+            const x = (Math.random() - 0.5) * 20;
+            const y = (Math.random() - 0.5) * 20;
+            const z = (Math.random() - 0.5) * 20;
+            createFractal(x, y, z, 1.5, 3);
+        });
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>La Machine Qui Respire</title>
+    <title>Oiseau Erratique</title>
     <style>
         body {
             margin: 0;
@@ -17,15 +17,14 @@
             align-items: center;
             flex-direction: column;
             position: relative;
-            transition: background-color 2s ease-in-out;
+            transition: background-color 2s;
         }
         .symbol {
             font-size: 5em;
             animation: float 5s infinite alternate ease-in-out;
-            opacity: 0.9;
             position: absolute;
-            z-index: 1;
-            transition: transform 2s, opacity 1.5s;
+            opacity: 1;
+            transition: transform 1.5s, opacity 1.5s;
         }
         @keyframes float {
             from { transform: translateY(0); }
@@ -34,22 +33,22 @@
         .message {
             font-size: 1.4em;
             text-align: center;
-            opacity: 0;
             position: absolute;
             bottom: 10%;
             color: #b22222;
-            transition: opacity 1.5s ease-in-out;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
         }
         .fragment {
             position: absolute;
             color: rgba(255, 255, 255, 0.2);
             font-size: 1.5em;
             pointer-events: none;
-            animation: drift 20s infinite alternate;
+            animation: drift 15s infinite alternate;
         }
         @keyframes drift {
             from { transform: translateY(0); }
-            to { transform: translateY(-30px); }
+            to { transform: translateY(-20px); }
         }
     </style>
 </head>
@@ -59,56 +58,72 @@
 
     <script>
         const fragments = [
-            "Le vent t’accompagne.", "Le silence s’étend.", "Quelque chose murmure.",
-            "Ta présence trouble l'équilibre.", "Respire. Encore.", "L’ombre s’éloigne."
+            "L'ombre respire", "Le vide murmure", "Ton silence m'appelle",
+            "La fissure s'agrandit", "La nuit t'enveloppe", "Rien ne bouge",
+            "Quelque chose s'efface", "Je t'attendais", "Ton regard pèse"
         ];
 
-        const symbolElement = document.getElementById("symbol");
-        const messageElement = document.getElementById("message");
-        let userPresence = 0;
+        const symbol = document.getElementById("symbol");
+        const message = document.getElementById("message");
+        let state = parseInt(localStorage.getItem("state")) || 0;
+        let inactivityTimeout;
 
         function generateMessage() {
             const base = fragments[Math.floor(Math.random() * fragments.length)];
-            const modifier = Math.random() > 0.5 ? "Plus loin." : "Arrête.";
-            return `${base} ${modifier}`;
+            const modifier = Math.random() > 0.5 ? "Encore." : "Mais pourquoi ?";
+            return `${base}. ${modifier}`;
         }
 
         function distortSymbol() {
-            const scale = 1 + Math.random() * 0.5;
+            state++;
+            localStorage.setItem("state", state);
+            const scale = 1 + Math.random() * 0.3;
             const rotate = Math.random() * 360;
-            symbolElement.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+            symbol.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+            document.body.style.backgroundColor = `rgb(${state * 10}, 0, 0)`;
+
+            message.textContent = generateMessage();
+            message.style.opacity = 1;
+            setTimeout(() => message.style.opacity = 0, 5000);
+
+            if (state % 5 === 0) createFragment();
         }
 
-        function addFragment() {
+        function createFragment() {
             const fragment = document.createElement("div");
             fragment.className = "fragment";
             fragment.textContent = fragments[Math.floor(Math.random() * fragments.length)];
             fragment.style.left = `${Math.random() * 100}vw`;
             fragment.style.top = `${Math.random() * 100}vh`;
             document.body.appendChild(fragment);
-            setTimeout(() => fragment.remove(), 20000);
+            setTimeout(() => fragment.remove(), 15000);
         }
 
-        symbolElement.addEventListener("mouseenter", () => {
-            userPresence++;
-            messageElement.textContent = generateMessage();
-            messageElement.style.opacity = 1;
-            setTimeout(() => messageElement.style.opacity = 0, 3000);
+        function handleInactivity() {
+            message.textContent = "Je t'attends...";
+            message.style.opacity = 1;
+            setTimeout(() => message.style.opacity = 0, 5000);
+        }
+
+        symbol.addEventListener("click", () => {
             distortSymbol();
-            addFragment();
-            document.body.style.backgroundColor = `rgb(${userPresence * 10}, 0, 0)`;
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(handleInactivity, 30000);
         });
+
+        window.onload = () => {
+            if (state > 0) {
+                document.body.style.backgroundColor = `rgb(${state * 10}, 0, 0)`;
+            }
+        };
 
         document.addEventListener("mousemove", (e) => {
             if (e.clientX < 50 || e.clientY < 50) {
-                messageElement.textContent = "Tu frôles le bord.";
-                messageElement.style.opacity = 1;
+                message.textContent = "Tu frôles le bord...";
+                message.style.opacity = 1;
+                setTimeout(() => message.style.opacity = 0, 4000);
             }
         });
-
-        setInterval(() => {
-            addFragment();
-        }, 5000);
     </script>
 </body>
 </html>

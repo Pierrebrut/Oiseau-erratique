@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbre Émotionnel Monumental</title>
+    <title>Arbre des Émotions Mystiques</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #2c3e50, #4ca1af);
+            background: radial-gradient(circle, #1a1a2e, #16213e, #0f3460);
             color: #fff;
             text-align: center;
             margin: 0;
@@ -15,63 +15,45 @@
         }
 
         h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-
-        p {
-            font-size: 1.2em;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0px 0px 20px #00aaff;
         }
 
         #tree-container {
-            margin-top: 20px;
+            margin-top: 30px;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
         }
 
         .branch {
-            background: linear-gradient(120deg, #8e44ad, #3498db);
-            border: 1px solid #ecf0f1;
-            padding: 10px 20px;
-            border-radius: 5px;
-            min-width: 200px;
-            text-align: left;
-            font-size: 1em;
-            transition: transform 0.3s, background 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 25px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            font-size: 1.2em;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, background 0.5s;
+            cursor: pointer;
         }
 
         .branch:hover {
             transform: scale(1.1);
-            background: linear-gradient(120deg, #d35400, #c0392b);
-        }
-
-        button {
-            background-color: #e67e22;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px 5px;
-        }
-
-        button:hover {
-            background-color: #d35400;
+            background: linear-gradient(120deg, #ff7eb3, #a74dbb);
         }
     </style>
 </head>
 <body>
-    <h1>Arbre Émotionnel Monumental</h1>
-    <p>Explorez les profondeurs infinies des émotions à travers des choix stratégiques et créatifs.</p>
+    <h1>Arbre des Émotions Mystiques</h1>
+    <p>Explorez des émotions rares et hybrides à travers vos choix.</p>
     <div id="tree-container">
-        <div class="branch" id="root">Racine : Choisissez entre Plaisir et Douleur</div>
+        <div class="branch" id="root" onclick="growTree('Plaisir')">Plaisir</div>
+        <div class="branch" onclick="growTree('Douleur')">Douleur</div>
     </div>
-    <button onclick="growTree('Plaisir')">Plaisir</button>
-    <button onclick="growTree('Douleur')">Douleur</button>
-
     <script>
         const emotionsTree = {
             Plaisir: {
@@ -80,14 +62,14 @@
                         next: {
                             Sérénité: {
                                 next: {
-                                    "Joie Intense": { next: null },
-                                    "Nostalgie Douce": { next: null }
+                                    "Joie Mélancolique": { next: null },
+                                    "Nostalgie Lumineuse": { next: null }
                                 }
                             },
-                            Motivation: {
+                            Énergie: {
                                 next: {
-                                    "Énergie Créative": { next: null },
-                                    "Excitation Profonde": { next: null }
+                                    "Excitation Profonde": { next: null },
+                                    "Créativité Infinie": { next: null }
                                 }
                             }
                         }
@@ -100,13 +82,13 @@
                         next: {
                             Frustration: {
                                 next: {
-                                    "Rage Puissante": { next: null },
-                                    "Mélancolie Profonde": { next: null }
+                                    "Rage Lucide": { next: null },
+                                    "Mélancolie Apaisante": { next: null }
                                 }
                             },
                             Résilience: {
                                 next: {
-                                    "Force Intérieure": { next: null },
+                                    "Force Éthérée": { next: null },
                                     "Sagesse Tragique": { next: null }
                                 }
                             }
@@ -114,20 +96,18 @@
                     }
                 }
             },
-            Hybrides: {
-                "Plaisir + Douleur": {
-                    next: {
-                        "Joie Mélancolique": {
-                            next: {
-                                "Extase Contradictoire": { next: null },
-                                "Paix Introspective": { next: null }
-                            }
-                        },
-                        "Douce Rage": {
-                            next: {
-                                "Motivation Déterminée": { next: null },
-                                "Tristesse Enveloppante": { next: null }
-                            }
+            "Plaisir + Douleur": {
+                next: {
+                    "Paix Contradictoire": {
+                        next: {
+                            "Extase Introspective": { next: null },
+                            "Tristesse Enveloppante": { next: null }
+                        }
+                    },
+                    "Motivation Déterminée": {
+                        next: {
+                            "Création Sublime": { next: null },
+                            "Réalisation Unique": { next: null }
                         }
                     }
                 }
@@ -139,36 +119,34 @@
         function growTree(choice) {
             const nextBranch = currentBranch.next[choice];
             if (!nextBranch) {
-                alert("Fin de la branche : Plus d'émotions à explorer.");
+                alert("Vous avez atteint une émotion rare. Fin de cette branche.");
                 return;
             }
 
             const newBranchElement = document.createElement("div");
             newBranchElement.className = "branch";
             newBranchElement.innerText = `${choice}`;
+            newBranchElement.onclick = () => growTree(choice);
 
             document.getElementById("tree-container").appendChild(newBranchElement);
 
             currentBranch = { name: choice, next: nextBranch.next };
 
-            updateButtons(nextBranch.next);
+            updateBranches(nextBranch.next);
         }
 
-        function updateButtons(nextOptions) {
-            const buttons = document.querySelectorAll("button");
-            buttons.forEach((button) => {
-                if (nextOptions && nextOptions[button.innerText]) {
-                    button.style.display = "inline-block";
-                } else if (nextOptions && currentBranch.name === "Plaisir + Douleur") {
-                    button.innerText = "Fusion";
-                    button.style.display = "inline-block";
-                } else {
-                    button.style.display = "none";
-                }
-            });
-        }
+        function updateBranches(nextOptions) {
+            const treeContainer = document.getElementById("tree-container");
+            if (!nextOptions) return;
 
-        updateButtons(currentBranch.next);
+            for (const choice in nextOptions) {
+                const branchElement = document.createElement("div");
+                branchElement.className = "branch";
+                branchElement.innerText = choice;
+                branchElement.onclick = () => growTree(choice);
+                treeContainer.appendChild(branchElement);
+            }
+        }
     </script>
 </body>
 </html>

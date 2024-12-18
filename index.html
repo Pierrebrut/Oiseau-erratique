@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Oiseau Erratique - Fractales</title>
+    <title>Oiseau Erratique - Fractales Dynamiques</title>
     <style>
         body {
             margin: 0;
@@ -46,45 +46,75 @@
             flatShading: true
         });
 
-        // Fonction pour créer une fractale
-        function createFractal(x, y, z, size, depth) {
+        // Collection des fractales
+        const fractals = [];
+
+        // Fonction pour créer une fractale dynamique
+        function createFractal(x, y, z, size, depth, velocity) {
             if (depth === 0) return;
 
             const geometry = new THREE.BoxGeometry(size, size, size);
             const cube = new THREE.Mesh(geometry, material);
             cube.position.set(x, y, z);
+            cube.userData = { size, velocity };
+
+            fractals.push(cube);
             scene.add(cube);
 
             const newSize = size * 0.5; // Réduction de la taille
             const offset = size * 0.75;
 
-            createFractal(x + offset, y, z, newSize, depth - 1);
-            createFractal(x - offset, y, z, newSize, depth - 1);
-            createFractal(x, y + offset, z, newSize, depth - 1);
-            createFractal(x, y - offset, z, newSize, depth - 1);
-            createFractal(x, y, z + offset, newSize, depth - 1);
-            createFractal(x, y, z - offset, newSize, depth - 1);
+            createFractal(x + offset, y, z, newSize, depth - 1, velocity);
+            createFractal(x - offset, y, z, newSize, depth - 1, velocity);
+            createFractal(x, y + offset, z, newSize, depth - 1, velocity);
+            createFractal(x, y - offset, z, newSize, depth - 1, velocity);
+            createFractal(x, y, z + offset, newSize, depth - 1, velocity);
+            createFractal(x, y, z - offset, newSize, depth - 1, velocity);
         }
 
         // Générer une fractale initiale
-        createFractal(0, 0, 0, 2, 3);
+        createFractal(0, 0, 0, 2, 3, { x: 0.005, y: 0.005, z: 0.002 });
 
-        // Animation de la scène
+        // Animation de la scène et des fractales
         camera.position.z = 15;
 
         function animate() {
-            requestAnimationFrame(animate);
-            scene.rotation.y += 0.005; // Rotation lente de la scène
+            fractals.forEach((fractal) => {
+                fractal.rotation.x += fractal.userData.velocity.x;
+                fractal.rotation.y += fractal.userData.velocity.y;
+                fractal.rotation.z += fractal.userData.velocity.z;
+
+                // Faire "respirer" la fractale
+                fractal.scale.x = 1 + 0.1 * Math.sin(Date.now() * 0.001);
+                fractal.scale.y = 1 + 0.1 * Math.cos(Date.now() * 0.001);
+                fractal.scale.z = 1 + 0.1 * Math.sin(Date.now() * 0.001 + fractal.position.x);
+            });
+
+            scene.rotation.y += 0.002; // Rotation lente de la scène globale
             renderer.render(scene, camera);
+            requestAnimationFrame(animate);
         }
+
         animate();
 
-        // Interaction : Ajouter une fractale aléatoire au clic
+        // Interaction : Modifier les fractales au clic
         window.addEventListener("click", () => {
-            const x = (Math.random() - 0.5) * 20;
-            const y = (Math.random() - 0.5) * 20;
-            const z = (Math.random() - 0.5) * 20;
-            createFractal(x, y, z, 1.5, 3);
+            const randomFractal = fractals[Math.floor(Math.random() * fractals.length)];
+            if (randomFractal) {
+                randomFractal.userData.velocity.x += (Math.random() - 0.5) * 0.01;
+                randomFractal.userData.velocity.y += (Math.random() - 0.5) * 0.01;
+                randomFractal.userData.velocity.z += (Math.random() - 0.5) * 0.01;
+
+                // Ajouter une fractale supplémentaire
+                createFractal(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    1.5,
+                    3,
+                    { x: Math.random() * 0.01, y: Math.random() * 0.01, z: Math.random() * 0.01 }
+                );
+            }
         });
 
         // Redimensionnement de la fenêtre
